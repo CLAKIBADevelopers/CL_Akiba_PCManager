@@ -36,8 +36,12 @@ class ViewController: UIViewController,AVCaptureMetadataOutputObjectsDelegate {
     
     private let session = AVCaptureSession()
     
-    func setupRealm() {
-        // ... existing function ...
+    let alert = UIAlertController(title: "サーバーに接続しています...", message: "", preferredStyle: .alert)
+    
+    func setupRealm() { //校内設置のRealmサーバーへの接続確立（校内のみ使用可、接続エラーの時は使用不可）
+
+        self.present(self.alert, animated: true, completion: nil)
+        
         let realmAuthURL = URL(string:"http://10.200.3.1:9080")!
         let realmURL = URL(string:"realm://10.200.3.1:9080/~/realm")!
         print(realmURL)
@@ -56,7 +60,7 @@ class ViewController: UIViewController,AVCaptureMetadataOutputObjectsDelegate {
                     self.realm = try! Realm(configuration: Realm.Configuration.defaultConfiguration)
                     //print(self.realm.objects(PCData.self))
                     
-                    if self.realm.objects(PCData.self).count == 0{
+                    if self.realm.objects(PCData.self).count == 0{ //DBサーバーにデータが存在しない場合はダミーオブジェクトを作成（通常データに影響を及ぼさないように）
                         print("データの書き込みを行います")
                         let data = PCData()
                         data.isOut = false
@@ -72,6 +76,16 @@ class ViewController: UIViewController,AVCaptureMetadataOutputObjectsDelegate {
                     }
                     isDone = false
                 }
+                if error != nil{ //何らかの理由で接続できなかった場合はエラーとしてアプリを終了させる
+                    print(error)
+                    self.alert.dismiss(animated: false, completion: nil)
+                    let errorAlert = UIAlertController(title: "データベース接続エラー", message: "アプリを終了して再度試してみてください\n\(error!)", preferredStyle: .alert)
+                    let action = UIAlertAction(title: "OK", style: .default, handler: {action in
+                        exit(0)
+                    })
+                    errorAlert.addAction(action)
+                    self.present(errorAlert, animated: true, completion: nil)
+                }
                 
                 
             }
@@ -81,6 +95,16 @@ class ViewController: UIViewController,AVCaptureMetadataOutputObjectsDelegate {
             runLoop.run(mode: RunLoopMode.defaultRunLoopMode, before: NSDate(timeIntervalSinceNow: 0.1) as Date) {
                 // 0.1秒毎の処理なので、処理が止まらない
         }
+        alert.dismiss(animated: true, completion: nil)
+    }
+    
+    
+    @IBAction func PCView(_ sender: Any) {
+        self.session.stopRunning()
+    }
+    
+    func startSession(){
+        self.session.startRunning()
     }
     
     override func viewDidLoad() {
@@ -123,7 +147,7 @@ class ViewController: UIViewController,AVCaptureMetadataOutputObjectsDelegate {
                         //self.view.addSubview(toolBar)
                         
                         // 読み取り開始
-                        self.session.startRunning()
+                        //self.session.startRunning()
                     }
                 }
             } catch {
@@ -157,9 +181,9 @@ class ViewController: UIViewController,AVCaptureMetadataOutputObjectsDelegate {
             
             self.session.stopRunning() //QRコードの読み取りセッションを一時停止
             print(metadata.stringValue)
-            if self.isOn.isOn == true{
+            if self.isOn.isOn == true{ //トグルがオンになっている場合は貸出モード
                 self.register(code: metadata.stringValue!, isIn: true)
-            }else{
+            }else{ //トグルがオフの場合は返却モード（貸出先を空文字で送信）
                 self.dataSet(code: metadata.stringValue!, isIn: false, toPC: "")
             }
         }
@@ -212,19 +236,20 @@ class ViewController: UIViewController,AVCaptureMetadataOutputObjectsDelegate {
         print(toPC)
         self.session.startRunning()
         
-        let currentData = self.realm.objects(PCData.self).filter("pcCode == %@",code)
-        try! self.realm.write {
+        let currentData = self.realm.objects(PCData.self).filter("pcCode == %@",code) //DBに同一のPCコードのデータを問い合わせ
+        try! self.realm.write { //最初のデータを書き換えてDBに登録（サーバーへの同期はRealm側の処理）
             currentData.first!.isOut = isIn
             currentData.first!.rentPCto = toPC
         }
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        self.setupRealm()
+        
     }
     
-    override func viewDidAppear(_ animated: Bool) {
-    
+    override func viewDidAppear(_ animated: Bool) { //表示完了後にRealmへの接続確立と読み取りセッションの開始（Realmサーバーに接続できるまでセッションは開始しない）
+        self.setupRealm()
+        self.startSession()
     }
 
     override func didReceiveMemoryWarning() {
@@ -238,6 +263,12 @@ class ViewController: UIViewController,AVCaptureMetadataOutputObjectsDelegate {
 }
 
 class PCTableViewController:UIViewController,UITableViewDelegate,UITableViewDataSource{
+    
+    
+    @IBAction func Close(_ sender: Any) {
+        self.dismiss(animated: true, completion: nil)
+        
+    }
     let db = try! Realm(configuration: Realm.Configuration.defaultConfiguration)
     var isOuttingPC = true
     
