@@ -1,0 +1,6 @@
+framework module Pods_PCManagement {
+  umbrella header "Pods-PCManagement-umbrella.h"
+
+  export *
+  module * { export * }
+}

@@ -1,0 +1,6 @@
+framework module Pods_PCManagementTests {
+  umbrella header "Pods-PCManagementTests-umbrella.h"
+
+  export *
+  module * { export * }
+}
