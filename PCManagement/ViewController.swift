@@ -24,6 +24,7 @@ class PCData:Object{
 }
 
 class connectData:Object{
+    @objc dynamic var SettingName = ""
     @objc dynamic var IPAddress = ""
     @objc dynamic var UserName = ""
     @objc dynamic var Password = ""
@@ -109,6 +110,8 @@ class ViewController: UIViewController,AVCaptureMetadataOutputObjectsDelegate {
                         })
                         errorAlert.addAction(action)
                         self.present(errorAlert, animated: true, completion: nil)
+                        //isDone = false
+                        //self.realm = try! Realm()
                     }
                     
                     
@@ -123,6 +126,7 @@ class ViewController: UIViewController,AVCaptureMetadataOutputObjectsDelegate {
         }else{
             let ap = UIApplication.shared.delegate as! AppDelegate
             ap.isLocal = true
+            self.realm = try! Realm()
         }
     }
     
@@ -220,6 +224,9 @@ class ViewController: UIViewController,AVCaptureMetadataOutputObjectsDelegate {
         var toPC = ""
         let alert = UIAlertController(title: "貸出先選択", message: "", preferredStyle: .alert)
         print("貸し出し処理をします")
+        
+        ///***以下削除済み処理***///
+        /*
         let game8F = UIAlertAction(title: "8Fゲーム専攻", style: .default, handler: { action in
             self.dataSet(code: code, isIn: isIn, toPC: "8Fゲーム専攻")
         })
@@ -251,9 +258,63 @@ class ViewController: UIViewController,AVCaptureMetadataOutputObjectsDelegate {
         alert.addAction(voice)
         alert.addAction(other)
         alert.addAction(cancel)
+        */
+        let db = try! Realm()
+        let metaData = db.objects(connectData.self)
+        if metaData.first!.SettingName != "LocalEnvironment"{
+            let json = JsonGet(fileName: "CompanyCode")
+            for i in 1...json[metaData.first!.SettingName]["toSubscription"].count{
+                let action = UIAlertAction(title: String(describing:json[metaData.first!.SettingName]["toSubscription"][String(describing:i)]), style: .default, handler: {action in
+                    self.dataSet(code: code, isIn: isIn, toPC: String(describing:json[metaData.first!.SettingName]["toSubscription"][String(describing:i)]))
+                })
+                alert.addAction(action)
+            }
+            let other = UIAlertAction(title: "その他", style: .default, handler: { action in
+                let message = UIAlertController(title: "貸出先", message: "貸出先名を入力してください", preferredStyle:.alert)
+                let button = UIAlertAction(title: "OK", style: .default, handler:  {action in
+                    self.dataSet(code: code, isIn: isIn, toPC: message.textFields!.first!.text!)
+                })
+                message.addTextField(configurationHandler: nil)
+                message.addAction(button)
+                self.present(message, animated: true, completion: nil)
+            })
+            alert.addAction(other)
+            let cancel = UIAlertAction(title: "キャンセル", style: .cancel, handler:{action in
+                self.session.startRunning()
+            })
+            alert.addAction(cancel)
+            self.present(alert, animated: true, completion: nil)
+            
+        }else{
+            let message = UIAlertController(title: "貸出先", message: "貸出先を入力してください", preferredStyle:.alert)
+            //let box = UITextField()
+            let button = UIAlertAction(title: "OK", style: .default, handler:  {action in
+                self.dataSet(code: code, isIn: isIn, toPC: message.textFields!.first!.text!)
+            })
+            message.addTextField(configurationHandler: nil)
+            message.addAction(button)
+            let cancel = UIAlertAction(title: "キャンセル", style: .cancel, handler:{action in
+                self.session.startRunning()
+            })
+            message.addAction(cancel)
+            self.present(message, animated: true, completion: nil)
+        }
+    }
+    
+    func JsonGet(fileName :String) -> JSON {
+        let path = Bundle.main.path(forResource: fileName, ofType: "json")
+        print(path)
         
-        
-        self.present(alert, animated: true, completion: nil)
+        do{
+            let jsonStr = try String(contentsOfFile: path!)
+            //print(jsonStr)
+            
+            let json = JSON.parse(jsonStr)
+            
+            return json
+        } catch {
+            return nil
+        }
         
     }
     
@@ -271,10 +332,24 @@ class ViewController: UIViewController,AVCaptureMetadataOutputObjectsDelegate {
         
         let currentData = db.objects(PCData.self).filter("pcCode == %@",code) //DBに同一のPCコードのデータを問い合わせ
         print(currentData.count)
-        try! self.realm.write { //最初のデータを書き換えてDBに登録（サーバーへの同期はRealm側の処理）
-            currentData.first!.isOut = isIn
-            currentData.first!.rentPCto = toPC
+        if currentData.count == 0{
+            let data = PCData()
+            data.isOut = isIn
+            data.IDinCourse = 0
+            data.pcCode = code
+            data.rentPCto = toPC
+            data.belonging = "hogehoge"
+            
+            try! self.realm.write {
+                self.realm.add(data)
+            }
+        }else{
+            try! self.realm.write { //最初のデータを書き換えてDBに登録（サーバーへの同期はRealm側の処理）
+                currentData.first!.isOut = isIn
+                currentData.first!.rentPCto = toPC
+            }
         }
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -358,6 +433,8 @@ class PCTableViewController:UIViewController,UITableViewDelegate,UITableViewData
     }
     
     
+    
+    
 }
 
 class FirstSettingsController:UIViewController{
@@ -389,13 +466,15 @@ class FirstSettingsController:UIViewController{
         if CompanyCode.text != nil && UserName.text != nil && Password.text != nil{
             let json = JsonGet(fileName: "CompanyCode")
             let db = try! Realm()
+            let data = connectData()
             var URL = ""
             if json[CompanyCode.text!] != nil{
                 URL = String(describing:json[CompanyCode.text!]["URL"])
+                data.SettingName = CompanyCode.text!
             }else{
                 URL = CompanyCode.text!
+                data.SettingName = "LocalEnvironment"
             }
-            let data = connectData()
             data.IPAddress = URL
             data.UserName = UserName.text!
             data.Password = Password.text!
