@@ -15,7 +15,8 @@
 		961ADA401FE7C24F0081C57F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 961ADA3E1FE7C24F0081C57F /* LaunchScreen.storyboard */; };
 		961ADA4B1FE7C24F0081C57F /* PCManagementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961ADA4A1FE7C24F0081C57F /* PCManagementTests.swift */; };
 		961ADA561FE7C24F0081C57F /* PCManagementUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961ADA551FE7C24F0081C57F /* PCManagementUITests.swift */; };
-		962E96C11FE8F05000ADAD0B /* pay.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 962E96C01FE8EE9100ADAD0B /* pay.m4a */; };
+		965FD702201999E80056673D /* pay.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 965FD701201999E80056673D /* pay.mp3 */; };
+		965FD70420199AF00056673D /* CompanyCode.json in Resources */ = {isa = PBXBuildFile; fileRef = 965FD70320199AF00056673D /* CompanyCode.json */; };
 		96E4CC021FEA1A14008D1193 /* PCViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96E4CC011FEA1A14008D1193 /* PCViewCell.swift */; };
 		B2C0362D747187362A69D7FE /* Pods_PCManagement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D831623EA88EA3D1ED89DF05 /* Pods_PCManagement.framework */; };
 		E087A00285D9789FCD261C8A /* Pods_PCManagementUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 181E68B543B3878AA2D5D7B9 /* Pods_PCManagementUITests.framework */; };
@@ -59,7 +60,8 @@
 		961ADA511FE7C24F0081C57F /* PCManagementUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PCManagementUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		961ADA551FE7C24F0081C57F /* PCManagementUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCManagementUITests.swift; sourceTree = "<group>"; };
 		961ADA571FE7C24F0081C57F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		962E96C01FE8EE9100ADAD0B /* pay.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = pay.m4a; sourceTree = "<group>"; };
+		965FD701201999E80056673D /* pay.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = pay.mp3; sourceTree = "<group>"; };
+		965FD70320199AF00056673D /* CompanyCode.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = CompanyCode.json; sourceTree = "<group>"; };
 		96E4CC011FEA1A14008D1193 /* PCViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCViewCell.swift; sourceTree = "<group>"; };
 		D831623EA88EA3D1ED89DF05 /* Pods_PCManagement.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_PCManagement.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		E9D9AFFF88BD903338B6D056 /* Pods-PCManagementUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PCManagementUITests.release.xcconfig"; path = "Pods/Target Support Files/Pods-PCManagementUITests/Pods-PCManagementUITests.release.xcconfig"; sourceTree = "<group>"; };
@@ -124,8 +126,9 @@
 				96E4CC011FEA1A14008D1193 /* PCViewCell.swift */,
 				961ADA3C1FE7C24F0081C57F /* Assets.xcassets */,
 				961ADA3E1FE7C24F0081C57F /* LaunchScreen.storyboard */,
-				962E96C01FE8EE9100ADAD0B /* pay.m4a */,
+				965FD701201999E80056673D /* pay.mp3 */,
 				961ADA411FE7C24F0081C57F /* Info.plist */,
+				965FD70320199AF00056673D /* CompanyCode.json */,
 			);
 			path = PCManagement;
 			sourceTree = "<group>";
@@ -287,10 +290,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				962E96C11FE8F05000ADAD0B /* pay.m4a in Resources */,
 				961ADA401FE7C24F0081C57F /* LaunchScreen.storyboard in Resources */,
 				961ADA3D1FE7C24F0081C57F /* Assets.xcassets in Resources */,
+				965FD702201999E80056673D /* pay.mp3 in Resources */,
 				961ADA3B1FE7C24F0081C57F /* Main.storyboard in Resources */,
+				965FD70420199AF00056673D /* CompanyCode.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -369,6 +373,7 @@
 				"${BUILT_PRODUCTS_DIR}/Realm/Realm.framework",
 				"${BUILT_PRODUCTS_DIR}/RealmLoginKit/RealmLoginKit.framework",
 				"${BUILT_PRODUCTS_DIR}/RealmSwift/RealmSwift.framework",
+				"${BUILT_PRODUCTS_DIR}/SwiftyJSON/SwiftyJSON.framework",
 				"${BUILT_PRODUCTS_DIR}/TORoundedTableView/TORoundedTableView.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
@@ -376,6 +381,7 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Realm.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RealmLoginKit.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RealmSwift.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SwiftyJSON.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/TORoundedTableView.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -645,7 +651,7 @@
 				INFOPLIST_FILE = PCManagement/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.akbart.app.PCManagement;
+				PRODUCT_BUNDLE_IDENTIFIER = com.akbart.app.ComBook;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -662,7 +668,7 @@
 				INFOPLIST_FILE = PCManagement/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.akbart.app.PCManagement;
+				PRODUCT_BUNDLE_IDENTIFIER = com.akbart.app.ComBook;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

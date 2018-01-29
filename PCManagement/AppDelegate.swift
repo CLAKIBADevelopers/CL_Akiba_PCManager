@@ -7,15 +7,32 @@
 //
 
 import UIKit
+import RealmSwift
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
+    
+    var isComplete = false
 
+    var isLocal = false
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        let db = try! Realm()
+        if db.objects(connectData.self).count == 0{
+            self.window = UIWindow(frame: UIScreen.main.bounds)
+            //Storyboardを指定
+            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+            //Viewcontrollerを指定
+            let initialViewController = storyboard.instantiateViewController(withIdentifier: "FirstSetting")
+            //rootViewControllerに入れる
+            self.window?.rootViewController = initialViewController
+            //表示
+            self.window?.makeKeyAndVisible()
+        }
+        
         return true
     }
 

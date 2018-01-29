@@ -9,6 +9,7 @@ target 'PCManagement' do
 pod 'Realm'
 pod 'RealmSwift'
 pod 'RealmLoginKit'
+pod 'SwiftyJSON'
   target 'PCManagementTests' do
     inherit! :search_paths
     # Pods for testing
