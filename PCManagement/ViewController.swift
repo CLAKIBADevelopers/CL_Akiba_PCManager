@@ -30,18 +30,11 @@ class connectData:Object{
     @objc dynamic var Password = ""
 }
 
-class permissionData:Object{
-    @objc dynamic var permissionName = "" //権限名
-    @objc dynamic var permissionLevel = 0 //権限レベル
-    @objc dynamic var isPermissionLimited = false //sudoにおいて、昇格先の権限に制限が加えられているか
-    @objc dynamic var isUniquePermission = false //ユニーク権限か
-    @objc dynamic var isCanSeeAccessLogs = false //アクセスログの閲覧が可能か（root及びmoderatorのみtrue）
-    @objc dynamic var CanEditLevel = 0 //データの書き換え可能レベル
-    @objc dynamic var isCanEditUser = false //ユーザーの変更が可能か
-    @objc dynamic var isCanSudo = false //sudo権限の行使が可能か
-    @objc dynamic var sudoLevel = 0 //sudoレベル（moderator->root・・・0 master->moderator・・・1）
-    @objc dynamic var isCanAddNewAccount = false //新規ユーザーの作成が可能か
-    @objc dynamic var CanAddUserLevel = 0 //作成可能なユーザーの最大権限レベル
+class permData:Object{
+    @objc dynamic var userName = ""
+    @objc dynamic var password = ""
+    @objc dynamic var Name = ""
+    @objc dynamic var permissionLevel = 0
 }
 
 class ViewController: UIViewController,AVCaptureMetadataOutputObjectsDelegate {
@@ -58,9 +51,11 @@ class ViewController: UIViewController,AVCaptureMetadataOutputObjectsDelegate {
     
     private let session = AVCaptureSession()
     
+    var temporaryCredentials:Realm.Configuration!
+    
     let alert = UIAlertController(title: "サーバーに接続しています...", message: "", preferredStyle: .alert)
     
-    func setupRealm() {
+    func setupRealm(path:String,isMain:Bool,isPermission:Bool,Type:String?) {
         let db = try! Realm()
         let data = db.objects(connectData.self)
         let connect = data.first!
@@ -69,7 +64,7 @@ class ViewController: UIViewController,AVCaptureMetadataOutputObjectsDelegate {
         if connect.IPAddress != "localMyDevice"{
             
             let realmAuthURL = URL(string:"http://\(connect.IPAddress)")!
-            let realmURL = URL(string:"realm://\(connect.IPAddress)/realm")!
+            let realmURL = URL(string:"realm://\(connect.IPAddress)/\(path)")!
             print(realmURL)
             var isDone = true
             
@@ -77,27 +72,38 @@ class ViewController: UIViewController,AVCaptureMetadataOutputObjectsDelegate {
             SyncUser.logIn(with: credentials, server: realmAuthURL) { user, error in
                 DispatchQueue.main.async {
                     if let user = user {
-                        Realm.Configuration.defaultConfiguration = Realm.Configuration(
-                            syncConfiguration: SyncConfiguration(user: user,realmURL: realmURL),
-                            objectTypes: [PCData.self]
-                            
-                        )
+                        if isMain == true{
+                            Realm.Configuration.defaultConfiguration = Realm.Configuration(
+                                syncConfiguration: SyncConfiguration(user: user,realmURL: realmURL),
+                                objectTypes: [PCData.self]
+                                
+                            )
+                        }else{
+                            if isPermission == true{
+                                self.temporaryCredentials = Realm.Configuration(
+                                    syncConfiguration: SyncConfiguration(user: user,realmURL: realmURL),
+                                    objectTypes: [permData.self]
+                                )
+                            }
+                        }
                         print("データベースへの接続を確立しました")
                         self.realm = try! Realm(configuration: Realm.Configuration.defaultConfiguration)
                         
-                        if self.realm.objects(PCData.self).count == 0{ //DBサーバーにデータが存在しない場合はダミーオブジェクトを作成（通常データに影響を及ぼさないように）
-                            print("データの書き込みを行います")
-                            let data = PCData()
-                            data.isOut = false
-                            data.pcCode = "***METADATA***"
-                            data.rentPCto = ""
-                            data.IDinCourse = 9999999
-                            data.belonging = "Master"
-                            try! self.realm.write {
-                                self.realm.add(data)
+                        if isMain == true{
+                            if self.realm.objects(PCData.self).count == 0{ //DBサーバーにデータが存在しない場合はダミーオブジェクトを作成（通常データに影響を及ぼさないように）
+                                print("データの書き込みを行います")
+                                let data = PCData()
+                                data.isOut = false
+                                data.pcCode = "***METADATA***"
+                                data.rentPCto = ""
+                                data.IDinCourse = 9999999
+                                data.belonging = "Master"
+                                try! self.realm.write {
+                                    self.realm.add(data)
+                                }
+                            }else{
+                                print(self.realm.objects(PCData.self))
                             }
-                        }else{
-                            print(self.realm.objects(PCData.self))
                         }
                         isDone = false
                     }
@@ -174,7 +180,6 @@ class ViewController: UIViewController,AVCaptureMetadataOutputObjectsDelegate {
                         previewLayer.frame = self.view.bounds
                         previewLayer.videoGravity = .resizeAspectFill
                         self.view.layer.addSublayer(previewLayer)
-                        //self.view.addSubview(toolBar)
                         
                         // 読み取り開始
                         
@@ -226,7 +231,6 @@ class ViewController: UIViewController,AVCaptureMetadataOutputObjectsDelegate {
         print("貸し出し処理をします")
         
         ///***以下削除済み処理***///
-        /*
         let game8F = UIAlertAction(title: "8Fゲーム専攻", style: .default, handler: { action in
             self.dataSet(code: code, isIn: isIn, toPC: "8Fゲーム専攻")
         })
@@ -258,7 +262,10 @@ class ViewController: UIViewController,AVCaptureMetadataOutputObjectsDelegate {
         alert.addAction(voice)
         alert.addAction(other)
         alert.addAction(cancel)
-        */
+        
+        self.present(alert, animated: true, completion: nil)
+ 
+        /*
         let db = try! Realm()
         let metaData = db.objects(connectData.self)
         if metaData.first!.SettingName != "LocalEnvironment"{
@@ -299,6 +306,7 @@ class ViewController: UIViewController,AVCaptureMetadataOutputObjectsDelegate {
             message.addAction(cancel)
             self.present(message, animated: true, completion: nil)
         }
+        */
     }
     
     func JsonGet(fileName :String) -> JSON {
@@ -359,7 +367,7 @@ class ViewController: UIViewController,AVCaptureMetadataOutputObjectsDelegate {
     override func viewDidAppear(_ animated: Bool) { //表示完了後にRealmへの接続確立と読み取りセッションの開始（Realmサーバーに接続できるまでセッションは開始しない）
         let ap:AppDelegate = UIApplication.shared.delegate as! AppDelegate
         if ap.isComplete == false{
-            self.setupRealm()
+            self.setupRealm(path: "realm", isMain: true, isPermission: false, Type: nil)
             ap.isComplete = true
         }
         self.startSession()
@@ -520,52 +528,6 @@ class FirstSettingsController:UIViewController{
     }
     
     let alert = UIAlertController(title: "サーバーに接続しています...", message: "", preferredStyle: .alert)
-    
-    func setupRealm() {
-        let db = try! Realm()
-        let data = db.objects(connectData.self)
-        let connect = data.first!
-        self.present(self.alert, animated: true, completion: nil)
-        
-        let realmAuthURL = URL(string:"http://\(connect.IPAddress)")!
-        let realmURL = URL(string:"realm://\(connect.IPAddress)/realm")!
-        print(realmURL)
-        var isDone = true
-        
-        let credentials = SyncCredentials.usernamePassword(username: connect.UserName, password: connect.Password, register: false)
-        SyncUser.logIn(with: credentials, server: realmAuthURL) { user, error in
-            DispatchQueue.main.async {
-                if let user = user {
-                    Realm.Configuration.defaultConfiguration = Realm.Configuration(
-                        syncConfiguration: SyncConfiguration(user: user,realmURL: realmURL),
-                        objectTypes: [PCData.self]
-                        
-                    )
-                    print("データベースへの接続を確立しました")
-
-                    isDone = false
-                }
-                if error != nil{ //何らかの理由で接続できなかった場合はデータの同期ができず本末転倒なので終了させる
-                    print(error)
-                    self.alert.dismiss(animated: false, completion: nil)
-                    let errorAlert = UIAlertController(title: "データベース接続エラー", message: "アプリを終了して再度試してみてください\n\(error!)", preferredStyle: .alert)
-                    let action = UIAlertAction(title: "OK", style: .default, handler: {action in
-                        exit(0)
-                    })
-                    errorAlert.addAction(action)
-                    self.present(errorAlert, animated: true, completion: nil)
-                }
-                
-                
-            }
-        }
-        let runLoop = RunLoop.current
-        while isDone &&
-            runLoop.run(mode: RunLoopMode.defaultRunLoopMode, before: NSDate(timeIntervalSinceNow: 0.1) as Date) {
-                // 0.1秒毎の処理なので、処理が止まらない
-        }
-        alert.dismiss(animated: true, completion: nil)
-    }
     
     func JsonGet(fileName :String) -> JSON {
         let path = Bundle.main.path(forResource: fileName, ofType: "json")
